@@ -1,3 +1,5 @@
+import { Button } from "./components/ui/button";
+
 export function App() {
-  return <h2>HELLO</h2>;
+  return <Button>HELLO</Button>;
 }
