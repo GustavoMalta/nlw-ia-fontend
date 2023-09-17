@@ -3,10 +3,25 @@ import { Separator } from "./ui/separator";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
-import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { getFFmpeg } from "@/lib/ffmpeg";
 import { fetchFile } from "@ffmpeg/util";
 import { api } from "@/lib/axios";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type Status = "waiting" | "converting" | "uploading" | "generating" | "success";
 
@@ -17,12 +32,21 @@ const StatusMessages = {
   success: "Sucesso!",
 };
 
+interface VideoProps {
+  id: string;
+  name?: string;
+  transcription?: string;
+  createdAt?: Date;
+}
 interface VideoInputFormProps {
-  onVideoUploaded: (id: string) => void;
+  onVideoUploaded: ({ id, transcription }: VideoProps) => void;
 }
 
 export function VideoInputForm({ onVideoUploaded }: VideoInputFormProps) {
   const [video, setVideo] = useState<File | null>(null);
+  const [videos, setVideos] = useState<VideoProps[]>([]);
+  const [videoSelected, setVideoSelected] = useState<VideoProps | null>(null);
+  const [tabSelected, setTabSelected] = useState<string>("upload");
   const [status, setStatus] = useState<Status>("waiting");
 
   const [progressValue, setProgress] = useState<number | null>(null);
@@ -32,6 +56,22 @@ export function VideoInputForm({ onVideoUploaded }: VideoInputFormProps) {
 
     return URL.createObjectURL(video);
   }, [video]);
+
+  const getVideos = () => {
+    api.get("/videos").then((res) => setVideos(res.data));
+  };
+
+  useEffect(() => {
+    getVideos();
+  }, []);
+
+  const handleSelectVideo = (id: string) => {
+    if (!id) return;
+    api.get("/videos/" + id).then((res) => {
+      onVideoUploaded(res.data);
+      setVideoSelected(res.data);
+    });
+  };
 
   const promptInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -102,20 +142,26 @@ export function VideoInputForm({ onVideoUploaded }: VideoInputFormProps) {
     setStatus("uploading");
 
     const response = await api.post("/videos", data);
-    console.log(response.data);
     const videoId = response.data.id;
 
     setStatus("generating");
 
-    await api.post(`/videos/${videoId}/transcription`, { prompt });
+    const { data: transcriptionData } = await api.post(
+      `/videos/${videoId}/transcription`,
+      { prompt }
+    );
 
     setStatus("success");
-    onVideoUploaded(videoId);
+    getVideos();
+    onVideoUploaded({
+      id: videoId,
+      transcription: transcriptionData.transcription,
+    });
+    setVideoSelected(response.data);
     console.log("finalizado");
   }
-
-  return (
-    <form className="space-y-6" onSubmit={handleUploadVideo}>
+  const renderVideoPreview = () => {
+    return (
       <label
         htmlFor="video"
         className="border border-dashed rounded-md flex aspect-video cursor-pointer text-sm gap-2 items-center justify-center text-muted-foreground hover:bg-primary/5"
@@ -132,6 +178,42 @@ export function VideoInputForm({ onVideoUploaded }: VideoInputFormProps) {
           </>
         )}
       </label>
+    );
+  };
+
+  return (
+    <form className="space-y-4" onSubmit={handleUploadVideo}>
+      <Tabs
+        defaultValue="upload"
+        className="w-auto"
+        onValueChange={setTabSelected}
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="upload">Upload</TabsTrigger>
+          <TabsTrigger value="select">Selecionar</TabsTrigger>
+        </TabsList>
+        <TabsContent value="upload">{renderVideoPreview()}</TabsContent>
+        <TabsContent value="select" className="my-6 ">
+          <Select
+            onValueChange={handleSelectVideo}
+            disabled={!["waiting", "success"].includes(status)}
+            defaultValue={videoSelected?.id}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um vídeo..." />
+            </SelectTrigger>
+            <SelectContent>
+              {videos.map((item) => {
+                return (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.name}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </TabsContent>
+      </Tabs>
       <input
         type="file"
         id="video"
@@ -149,25 +231,27 @@ export function VideoInputForm({ onVideoUploaded }: VideoInputFormProps) {
           id="transcription_prompt"
         />
       </div>
-      <Button
-        data-success={status === "success"}
-        className="flex w-full data-[success=true]:bg-emerald-500"
-        type="submit"
-        disabled={status !== "waiting"}
-      >
-        {status === "waiting" ? (
-          <>
-            Carregar vídeo
-            <Upload className="w-4 h-4 ml-2" />
-          </>
-        ) : (
+      {tabSelected === "upload" && (
+        <Button
+          data-success={status === "success"}
+          className="flex w-full data-[success=true]:bg-emerald-500"
+          type="submit"
+          disabled={status !== "waiting"}
+        >
+          {status === "waiting" ? (
+            <>
+              Carregar vídeo
+              <Upload className="w-4 h-4 ml-2" />
+            </>
+          ) : (
+            `
+          ${StatusMessages[status]} ${
+              status == "converting" ? progressValue + "%" : ""
+            }
           `
-        ${StatusMessages[status]} ${
-            status == "converting" ? progressValue + "%" : ""
-          }
-        `
-        )}
-      </Button>
+          )}
+        </Button>
+      )}
     </form>
   );
 }

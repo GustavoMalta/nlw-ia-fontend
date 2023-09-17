@@ -15,10 +15,20 @@ import { useState } from "react";
 import { VideoInputForm } from "./components/video-form";
 import { PromptSelect } from "./components/prompt-select";
 import { useCompletion } from "ai/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+
+interface VideoProps {
+  id: string;
+  transcription?: string;
+}
+const VideoDefault = {
+  id: "",
+  transcription: "",
+};
 
 export function App() {
   const [temperature, setTemperature] = useState(0.5);
-  const [videoId, setVideoId] = useState<string | null>(null);
+  const [video, setVideo] = useState<VideoProps>(VideoDefault);
 
   const {
     input,
@@ -30,7 +40,7 @@ export function App() {
   } = useCompletion({
     api: import.meta.env.NLW_BASEURL + "/ai/complete",
     body: {
-      videoId,
+      videoId: video.id,
       temperature,
     },
     headers: {
@@ -57,12 +67,33 @@ export function App() {
       <main className="flex-1 p-6 flex gap-6">
         <div className="flex flex-col flex-1 gap-4">
           <div className="grid grid-rows-2 gap-4 flex-1">
-            <Textarea
-              value={input}
-              onChange={handleInputChange}
-              className="resize-none p-4 leading-relaxed"
-              placeholder="Inclua o prompt para a IA..."
-            />
+            <Tabs defaultValue="promptInput" className="w-auto grid">
+              <div className="flex flex-col">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="promptInput">Prompt</TabsTrigger>
+                  <TabsTrigger value="transcriptionInput">
+                    Transcrição
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="promptInput" className="my-6 flex-1">
+                  <Textarea
+                    value={input}
+                    onChange={handleInputChange}
+                    className="resize-none p-4 leading-relaxed h-full"
+                    placeholder="Inclua o prompt para a IA..."
+                  />
+                </TabsContent>
+                <TabsContent value="transcriptionInput" className="my-6 flex-1">
+                  <Textarea
+                    value={video.transcription || ""}
+                    readOnly
+                    className="resize-none p-4 leading-relaxed h-full"
+                    placeholder="Transcrição do vídeo..."
+                  />
+                </TabsContent>
+              </div>
+            </Tabs>
+
             <Textarea
               value={completion}
               className="resize-none p-4 leading-relaxed"
@@ -71,17 +102,17 @@ export function App() {
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            Lembre-se: Você pode Utiliazr a variável{" "}
+            Lembre-se: Você pode Utiliazr a variável
             <code className="text-violet-400">{"{transcription}"}</code> no seu
             prompt para adicionar o conteúdo do vídeo selecionado.
           </p>
         </div>
         <aside className="w-80 space-y-5">
-          <VideoInputForm onVideoUploaded={setVideoId} />
+          <VideoInputForm onVideoUploaded={setVideo} />
 
           <Separator />
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label>Prompt</Label>
               <PromptSelect onPromptSelect={setInput} />
@@ -122,7 +153,7 @@ export function App() {
             <Button
               className="w-full"
               type="submit"
-              disabled={isLoading || !videoId || !input}
+              disabled={isLoading || !video.id || !input}
             >
               {isLoading ? (
                 "Gerando..."
