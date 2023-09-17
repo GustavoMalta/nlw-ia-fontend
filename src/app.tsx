@@ -1,4 +1,4 @@
-import { FileVideo, Github, Upload, Wand } from "lucide-react";
+import { Github, Wand, Check } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
 import { Textarea } from "./components/ui/textarea";
@@ -51,13 +51,22 @@ export function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <div className="px-6 py-3 flex items-center justify-between border-b">
-        <h1 className="text-xl font-bold">Upload.ai </h1>
+        <h1 className="text-xl font-bold">Upload A.I. </h1>
         <div className="flex items-center gap-3">
           <span className="text-sm text-muted-foreground">
             Next Leevel Week I.A. 🤖️
           </span>
           <Separator orientation={"vertical"} className="h-6" />
-          <Button variant={"outline"}>
+          <Button
+            variant={"outline"}
+            onClick={() =>
+              window.open(
+                "https://github.com/GustavoMalta/nlw-ia-fontend",
+                "_blank",
+                "noreferrer"
+              )
+            }
+          >
             <Github className="w-4 h-4 mr-2" />
             GitHub
           </Button>
@@ -70,9 +79,17 @@ export function App() {
             <Tabs defaultValue="promptInput" className="w-auto grid">
               <div className="flex flex-col">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="promptInput">Prompt</TabsTrigger>
+                  <TabsTrigger value="promptInput">
+                    Prompt
+                    {input && (
+                      <Check className="w-4 h-4 ml-2 bg-emerald-950 border  " />
+                    )}
+                  </TabsTrigger>
                   <TabsTrigger value="transcriptionInput">
                     Transcrição
+                    {video.transcription && (
+                      <Check className="w-4 h-4 ml-2 bg-emerald-950 border  " />
+                    )}
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="promptInput" className="my-6 flex-1">
@@ -103,7 +120,7 @@ export function App() {
           </div>
           <p className="text-sm text-muted-foreground">
             Lembre-se: Você pode Utiliazr a variável
-            <code className="text-violet-400">{"{transcription}"}</code> no seu
+            <code className="text-violet-400">{" {transcription} "}</code>no seu
             prompt para adicionar o conteúdo do vídeo selecionado.
           </p>
         </div>
@@ -153,7 +170,7 @@ export function App() {
             <Button
               className="w-full"
               type="submit"
-              disabled={isLoading || !video.id || !input}
+              disabled={isLoading || !video.transcription || !input}
             >
               {isLoading ? (
                 "Gerando..."

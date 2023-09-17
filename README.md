@@ -1,27 +1,52 @@
-# React + TypeScript + Vite
+# Next Level Week I.A.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Backend develop in the event made by Rocketseat.
+There is some changes that I made in original layout, and space for improvements.
 
-Currently, two official plugins are available:
+## **The Backend project**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+You can check the Backend here:
+[NLW-IA-Backend](https://github.com/GustavoMalta/nlw-ia-backend)
 
-## Expanding the ESLint configuration
+## **Run Frontend project**
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+\
+Download dependences:
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-   parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-   },
+```
+npm install
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+or
+
+```
+yarn
+```
+
+---
+
+\
+Execute Project:
+
+```
+npm run dev
+```
+
+or
+
+```
+yarn dev
+```
+
+---
+
+---
+
+## **System screenshots**
+
+![Screen Shot](prints/print-a.png?raw=true "NLW-IA")
+![Screen Shot](prints/print-b.png?raw=true "NLW-IA")
+![Screen Shot](prints/print-c.png?raw=true "NLW-IA")
+![Screen Shot](prints/print-d.png?raw=true "NLW-IA")
+
+---
